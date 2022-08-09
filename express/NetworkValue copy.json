@@ -1,0 +1,16 @@
+{
+    "RDS": {
+        "endpoint": "",
+        "user": "",
+        "password": "",
+        "database": "",
+        "port": 3306
+    },
+    "HOST": {
+        "ip": "",
+        "port": ""
+    },
+    "TABLE": {
+        "members": ""
+    }
+}
