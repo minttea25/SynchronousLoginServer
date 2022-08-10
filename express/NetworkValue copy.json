@@ -1,0 +1,28 @@
+{
+    "RDS": {
+        "endpoint": "",
+        "user": "",
+        "password": "",
+        "database": "",
+        "port": 3306
+    },
+    "HOST": {
+        "ip": "",
+        "port": ""
+    },
+    "TABLE": {
+        "member": ""
+    },
+    "COLUMNS": {
+        "uid": "",
+        "password": "",
+        "name": "",
+        "lastlogin": "",
+        "jointime": "",
+        "pwchange": "",
+        "profile": "",
+        "loginstatus": "",
+        "level": "",
+        "id": ""
+    }
+}
