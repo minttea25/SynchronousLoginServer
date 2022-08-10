@@ -11,6 +11,18 @@
         "port": ""
     },
     "TABLE": {
-        "members": ""
+        "member": ""
+    },
+    "COLUMNS": {
+        "uid": "",
+        "password": "",
+        "name": "",
+        "lastlogin": "",
+        "jointime": "",
+        "pwchange": "",
+        "profile": "",
+        "loginstatus": "",
+        "level": "",
+        "id": ""
     }
 }
