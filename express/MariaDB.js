@@ -51,7 +51,17 @@ var login_try = function(id, password) {
             }
             else {
                 if (password == rows[0].mem_password) {
-                    resolve(RESOLVE_VALUE.TRUE);
+                    // 로그인 상태로 변경
+                    const sql2 = `update ${_memberTable} set ${c_loginstatus}=1 where ${c_id}='${id}';`;
+                    connection.query(sql2, function(err, results) {
+                        if (err) {
+                            console.log(err);
+                            resolve(RESOLVE_VALUE.ERROR);
+                        }
+                        else {
+                            resolve(RESOLVE_VALUE.TRUE);
+                        }
+                    })
                 }
                 else {
                     resolve(RESOLVE_VALUE.FALSE);
@@ -61,6 +71,21 @@ var login_try = function(id, password) {
     })
 };
 
+var logout_try = function(id) {
+    return new Promise(function(resolve, reject) {
+        const sql = `update ${_memberTable} set ${c_loginstatus}=0 where ${c_id}='id';`;
+
+        connection.query(sql, function(err, result) {
+            if (err) {
+                console.log(err);
+                resolve(RESOLVE_VALUE.ERROR);
+            }
+            else {
+                resolve(RESOLVE_VALUE.TRUE);
+            }
+        })
+    })
+}
 
 var join_try = function(account, password, nickname) {
     return new Promise(function(resolve, reject) {
@@ -114,8 +139,13 @@ var check_id_try = function(id) {
     })
 }
 
-module.exports.login = async function(account, password) {
-    var result = await login_try(account, password);
+module.exports.login = async function(id, password) {
+    var result = await login_try(id, password);
+    return result;
+}
+
+module.exports.logout = async function(id) {
+    var result = await logout_try(id);
     return result;
 }
 

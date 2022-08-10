@@ -9,9 +9,7 @@ const { sep } = require('path');
 
 var mariadb = require("." + sep + "MariaDB.js");
 
-const { getLoginRes } = require("." + sep + "LoginRes.js");
-const { getJoinRes } = require("." + sep + "LoginRes.js");
-const { getCheckIdRes } = require("." + sep + "LoginRes.js");
+const myRes = require("." + sep + "LoginRes.js");
 
 const { RESOLVE_VALUE } = require("." + sep + "Enums.js");
 
@@ -56,11 +54,11 @@ app.post("/synchronous/login", (req, res) => {
     mariadb.login(id, pw).then(function(result) {
         // login failed
         if (!result) {
-            res.send(getLoginRes(0, false));
+            res.send(myRes.getLoginRes(0, false));
         }
         // login success
         else {
-            res.send(getLoginRes(0, true));
+            res.send(myRes.getLoginRes(0, true));
         }
     });
 });
@@ -68,7 +66,17 @@ app.post("/synchronous/login", (req, res) => {
 app.post("/synchronous/logout", (req, res) => {
     console.log("Logout Request");
 
-    res.send(getLoginRes(0, "logout"));
+    const id = req.body.id || req.query.id;
+
+    mariadb.logout(id).then(function(result) {
+        if (result == RESOLVE_VALUE.TRUE) {
+            res.send(myRes.getLogoutRes(0, true));
+        }
+        // error
+        else {
+            res.send(myRes.getLogoutRes(0, false));
+        }
+    })
 })
 
 app.post("/synchronous/join", (req, res) => {
@@ -81,11 +89,11 @@ app.post("/synchronous/join", (req, res) => {
     mariadb.joinMember(id, pw, name).then(function(result) {
         // 가입 성공
         if (result != RESOLVE_VALUE.ERROR) {
-            res.send(getJoinRes(0, true, result));
+            res.send(myRes.getJoinRes(0, true, result));
         }
         // 가입 실패
         else {
-            res.send(getJoinRes(0, false, null));
+            res.send(myRes.getJoinRes(0, false, null));
         }
     });
 });
@@ -98,11 +106,11 @@ app.post("/synchronous/checkid", (req, res) => {
     mariadb.checkId(id).then(function(result) {
         // 사용 가능 아이디
         if (result == RESOLVE_VALUE.TRUE) {
-            res.send(getCheckIdRes(0, true));
+            res.send(myRes.getCheckIdRes(0, true));
         }
         // 아이디 중복
         else if (result == RESOLVE_VALUE.FALSE) {
-            res.send(getCheckIdRes(0, false));
+            res.send(myRes.getCheckIdRes(0, false));
         }
     })
 });
