@@ -8,10 +8,7 @@ var fs = require('fs');
 const { sep } = require('path');
 
 var mariadb = require("." + sep + "MariaDB.js");
-
 const myRes = require("." + sep + "LoginRes.js");
-
-const { RESOLVE_VALUE } = require("." + sep + "Enums.js");
 
 const file = fs.readFileSync('.' + sep + 'NetworkValue.json', 'utf-8');
 const jsonData = JSON.parse(file);
@@ -52,14 +49,7 @@ app.post("/synchronous/login", (req, res) => {
     const pw = req.body.password || req.query.password;
 
     mariadb.login(id, pw).then(function(result) {
-        // login failed
-        if (!result) {
-            res.send(myRes.getLoginRes(0, false));
-        }
-        // login success
-        else {
-            res.send(myRes.getLoginRes(0, true));
-        }
+        res.send(result);
     });
 });
 
@@ -69,13 +59,7 @@ app.post("/synchronous/logout", (req, res) => {
     const id = req.body.id || req.query.id;
 
     mariadb.logout(id).then(function(result) {
-        if (result == RESOLVE_VALUE.TRUE) {
-            res.send(myRes.getLogoutRes(0, true));
-        }
-        // error
-        else {
-            res.send(myRes.getLogoutRes(0, false));
-        }
+        res.send(result);
     })
 })
 
@@ -87,14 +71,7 @@ app.post("/synchronous/join", (req, res) => {
     const name = req.body.name || req.query.name;
 
     mariadb.joinMember(id, pw, name).then(function(result) {
-        // 가입 성공
-        if (result != RESOLVE_VALUE.ERROR) {
-            res.send(myRes.getJoinRes(0, true, result));
-        }
-        // 가입 실패
-        else {
-            res.send(myRes.getJoinRes(0, false, null));
-        }
+        res.send(result);
     });
 });
 
@@ -104,17 +81,19 @@ app.post("/synchronous/checkid", (req, res) => {
     const id = req.body.id || req.query.id;
 
     mariadb.checkId(id).then(function(result) {
-        // 사용 가능 아이디
-        if (result == RESOLVE_VALUE.TRUE) {
-            res.send(myRes.getCheckIdRes(0, true));
-        }
-        // 아이디 중복
-        else if (result == RESOLVE_VALUE.FALSE) {
-            res.send(myRes.getCheckIdRes(0, false));
-        }
+        res.send(result);
     })
 });
 
+app.post("/synchronous/checkname", (req, res) => {
+    console.log("Name Check Request");
+
+    const name = req.body.name || req.query.name;
+
+    mariadb.checkName(name).then(function(result) {
+        res.send(result);
+    })
+});
 
 // 모듈 로드 실패
 if (mariadb == null) {
