@@ -2,6 +2,8 @@ var mysql = require('mysql');
 var fs = require('fs');
 const { sep } = require('path');
 
+const myRes = require("." + sep + "LoginRes.js");
+
 const jsonFile = fs.readFileSync('.' + sep + 'NetworkValue.json', 'utf-8');
 const jsonData = JSON.parse(jsonFile);
 const rds_v = jsonData.RDS;
@@ -24,7 +26,8 @@ const c_level = columns_v.level;
 const c_id = columns_v.id;
 const c_profile = columns_v.profile;
 
-const { RESOLVE_VALUE } = require("." + sep + "Enums.js");
+const { CODE } = require("." + sep + "Enums.js");
+const { MESSAGE } = require("." + sep + "Enums.js");
 
 var connection = mysql.createConnection({
     host: _endpoint,
@@ -34,59 +37,79 @@ var connection = mysql.createConnection({
     port: _port
 });
 
+// return value: { code: code, message: message, id: id, level: level, name: name, image: image }
 var login_try = function(id, password) {
     return new Promise(function(resolve, reject) {
         // reject 는 try-catch 문에서 사용
         const sql = `select * from ${_memberTable} where ${c_id}='${id}';`;
+        var name, image, level;
 
         connection.query(sql, function(err, rows, fields) {
             if (err) {
                 console.log(err);
-                resolve(RESOLVE_VALUE.ERROR);
+                resolve(myRes.getLoginRes(CODE.ERROR, MESSAGE.ERROR, null, null, null, null));
             }
             // 해당하는 id 없음 (= 결과 row가 하나도 없음)
             if (rows.length == 0) {
                 console.log(`There is no such id: ${id} in server`);
-                resolve(RESOLVE_VALUE.FALSE);
+                resolve(myRes.getLoginRes(CODE.FALSE, MESSAGE.NO_RESULT, null, null, null, null));
             }
             else {
+                message = true;
+                name = rows[0].mem_name;
+                level = rows[0].mem_level;
+                image = rows[0].mem_profile;
+
                 if (password == rows[0].mem_password) {
                     // 로그인 상태로 변경
                     const sql2 = `update ${_memberTable} set ${c_loginstatus}=1 where ${c_id}='${id}';`;
                     connection.query(sql2, function(err, results) {
                         if (err) {
                             console.log(err);
-                            resolve(RESOLVE_VALUE.ERROR);
+                            resolve(myRes.getLoginRes(CODE.ERROR, MESSAGE.ERROR, null, null, null, null));
                         }
                         else {
-                            resolve(RESOLVE_VALUE.TRUE);
+                            resolve(myRes.getLoginRes(CODE.TRUE, MESSAGE.GOOD, id, level, name, image));
                         }
                     })
                 }
                 else {
-                    resolve(RESOLVE_VALUE.FALSE);
+                    // 비밀 번호가 틀려도 '아이디나 비밀번호'가 틀린 것처럼 전송
+                    resolve(myRes.getLoginRes(CODE.FALSE, MESSAGE.NO_RESULT, null, null, null, null));
                 }
             }
         })
     })
 };
 
+
+// return value: { code: code, message: message }
+// cf: result : OkPacket { fieldCount, affectedRows, insertId, serverStatus, warningCount, message, protocol41, changedRows }
 var logout_try = function(id) {
     return new Promise(function(resolve, reject) {
-        const sql = `update ${_memberTable} set ${c_loginstatus}=0 where ${c_id}='id';`;
+        const sql = `update ${_memberTable} set ${c_loginstatus}=0 where ${c_id}='${id}';`;
 
         connection.query(sql, function(err, result) {
             if (err) {
                 console.log(err);
-                resolve(RESOLVE_VALUE.ERROR);
+                resolve(myRes.getLogoutRes(CODE.ERROR, MESSAGE.ERROR));
+            }
+            // id가 없는 경우
+            else if (result.affectedRows == 0) {
+                resolve(myRes.getLogoutRes(CODE.ERROR, MESSAGE.NO_RESULT));
+            }
+            // 이미 로그아웃 되있는 경우
+            else if (result.changedRows != 1) {
+                resolve(myRes.getLogoutRes(CODE.FALSE, MESSAGE.ALREADY_LOGOUT));
             }
             else {
-                resolve(RESOLVE_VALUE.TRUE);
+                resolve(myRes.getLogoutRes(CODE.TRUE, MESSAGE.GOOD));
             }
         })
     })
 }
 
+// return value: { code: code, message: message, uid: uid }
 var join_try = function(account, password, nickname) {
     return new Promise(function(resolve, reject) {
         const sql = `insert into ${_memberTable} (${c_id}, ${c_password}, ${c_name}, ${c_lastlogin}, ${c_jointime}, ${c_pwchange}) 
@@ -95,7 +118,7 @@ var join_try = function(account, password, nickname) {
         connection.query(sql, function(err, result) {
             if (err) {
                 console.log(err);
-                resolve(RESOLVE_VALUE.ERROR);
+                resolve(myRes.getJoinRes(CODE.ERROR, MESSAGE.ERROR, null));
             }
             else {
                 // 가입 성공
@@ -104,10 +127,10 @@ var join_try = function(account, password, nickname) {
                 connection.query(sql2, function(err, rows, fields) {
                     if(err || rows.length != 1) {
                         console.log(err);
-                        resolve(-1);
+                        resolve(myRes.getJoinRes(CODE.ERROR, MESSAGE.ERROR, null));
                     }
                     else {
-                        resolve(rows[0].uid);
+                        resolve(myRes.getJoinRes(CODE.TRUE, MESSAGE.GOOD, rows[0].uid));
                     }
                 })
             }
@@ -116,24 +139,22 @@ var join_try = function(account, password, nickname) {
 }
 
 
-// return value
-// 0: 중복 아이디 있음
-// 1: 사용 가능 아이디
-// -1: 에러 
+// return value: { code: code, message: message }
 var check_id_try = function(id) {
     return new Promise(function(resolve, reject) {
         const sql = `select * from ${_memberTable} where ${c_id}='${id}';`;
 
         connection.query(sql, function(err, rows, fields) {
             if (err) {
-                console.log(err); // 아이디 중복
-                resolve(RESOLVE_VALUE.ERROR);
+                console.log(err);
+                resolve(myRes.getCheckIdRes(CODE.ERROR, MESSAGE.ERROR));
             }
             else if (rows.length == 0) {
-                resolve(RESOLVE_VALUE.TRUE);
+                resolve(myRes.getCheckIdRes(CODE.TRUE, MESSAGE.GOOD));
             }
+            // 아이디 중복
             else {
-                resolve(RESOLVE_VALUE.FALSE);
+                resolve(myRes.getCheckIdRes(CODE.FALSE, MESSAGE.UNAVAILABLE));
             }
         })
     })
