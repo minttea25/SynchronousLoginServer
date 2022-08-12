@@ -42,20 +42,20 @@ var login_try = function(id, password) {
     return new Promise(function(resolve, reject) {
         // reject 는 try-catch 문에서 사용
         const sql = `select * from ${_memberTable} where ${c_id}='${id}';`;
-        var name, image, level;
+        var name, image, level, uid;
 
         connection.query(sql, function(err, rows, fields) {
             if (err) {
                 console.log(err);
-                resolve(myRes.getLoginRes(CODE.ERROR, MESSAGE.ERROR, null, null, null, null));
+                resolve(myRes.getLoginRes(CODE.ERROR, MESSAGE.ERROR, null, null, null, null, null));
             }
             // 해당하는 id 없음 (= 결과 row가 하나도 없음)
             if (rows.length == 0) {
                 console.log(`There is no such id: ${id} in server`);
-                resolve(myRes.getLoginRes(CODE.FALSE, MESSAGE.NO_RESULT, null, null, null, null));
+                resolve(myRes.getLoginRes(CODE.FALSE, MESSAGE.NO_RESULT, null, null, null, null, null));
             }
             else {
-                message = true;
+                uid = rows[0].uid;
                 name = rows[0].mem_name;
                 level = rows[0].mem_level;
                 image = rows[0].mem_profile;
@@ -66,10 +66,10 @@ var login_try = function(id, password) {
                     connection.query(sql2, function(err, results) {
                         if (err) {
                             console.log(err);
-                            resolve(myRes.getLoginRes(CODE.ERROR, MESSAGE.ERROR, null, null, null, null));
+                            resolve(myRes.getLoginRes(CODE.ERROR, MESSAGE.ERROR, null, null, null, null, null));
                         }
                         else {
-                            resolve(myRes.getLoginRes(CODE.TRUE, MESSAGE.GOOD, id, level, name, image));
+                            resolve(myRes.getLoginRes(CODE.TRUE, MESSAGE.GOOD, uid, id, level, name, image));
                         }
                     })
                 }
@@ -160,6 +160,27 @@ var check_id_try = function(id) {
     })
 }
 
+// return value: { code: code, message: message }
+var check_name_try = function(name) {
+    return new Promise(function(resolve, reject) {
+        const sql = `select * from ${_memberTable} where ${c_name}='${name}';`;
+
+        connection.query(sql, function(err, rows, fields) {
+            if (err) {
+                console.log(err);
+                resolve(myRes.getCheckNameRes(CODE.ERROR, MESSAGE.ERROR));
+            }
+            else if (rows.length == 0) {
+                resolve(myRes.getCheckNameRes(CODE.TRUE, MESSAGE.GOOD));
+            }
+            // 아이디 중복
+            else {
+                resolve(myRes.getCheckNameRes(CODE.FALSE, MESSAGE.UNAVAILABLE));
+            }
+        })
+    })
+}
+
 module.exports.login = async function(id, password) {
     var result = await login_try(id, password);
     return result;
@@ -177,6 +198,11 @@ module.exports.joinMember = async function(account, password, nickname) {
 
 module.exports.checkId = async function(id) {
     var result = await check_id_try(id);
+    return result;
+}
+
+module.exports.checkName = async function(name) {
+    var result = await check_name_try(name);
     return result;
 }
 

@@ -85,6 +85,15 @@ app.post("/synchronous/checkid", (req, res) => {
     })
 });
 
+app.post("/synchronous/checkname", (req, res) => {
+    console.log("Name Check Request");
+
+    const name = req.body.name || req.query.name;
+
+    mariadb.checkName(name).then(function(result) {
+        res.send(result);
+    })
+});
 
 // 모듈 로드 실패
 if (mariadb == null) {
