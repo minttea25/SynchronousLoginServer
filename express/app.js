@@ -101,6 +101,9 @@ if (mariadb == null) {
     console.log("Exit...");
     return;
 }
+else {
+    console.log("The module 'MariaDB' is loaded.");
+}
 
 http.createServer(app).listen(app.get('port'), app.get('host'), () => {
     console.log('Express server running at ' + app.get('port') + " " + app.get('host'))

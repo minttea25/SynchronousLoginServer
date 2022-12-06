@@ -1,28 +1,28 @@
 {
     "RDS": {
-        "endpoint": "",
-        "user": "",
-        "password": "",
-        "database": "",
+        "endpoint": "***.amazonaws.com",
+        "user": "master",
+        "password": "***",
+        "database": "SynchronousLogin",
         "port": 3306
     },
     "HOST": {
-        "ip": "",
-        "port": ""
+        "ip": "127.0.0.1",
+        "port": "8888"
     },
     "TABLE": {
-        "member": ""
+        "member": "Member"
     },
     "COLUMNS": {
-        "uid": "",
-        "password": "",
-        "name": "",
-        "lastlogin": "",
-        "jointime": "",
-        "pwchange": "",
-        "profile": "",
-        "loginstatus": "",
-        "level": "",
-        "id": ""
+        "uid": "uid",
+        "password": "mem_password",
+        "name": "mem_name",
+        "lastlogin": "mem_lastlogin",
+        "jointime": "mem_jointime",
+        "pwchange": "mem_pw_change",
+        "profile": "mem_profile",
+        "loginstatus": "mem_login_status",
+        "level": "mem_level",
+        "id": "mem_id"
     }
 }
